@@ -1,6 +1,7 @@
 #include "RenderEngine/DirectX9/ParticleEmitterInstance.h"
 #include "RenderEngine/DirectX9/RenderObject.h"
 #include "General/GameTime.h"
+#include <stdexcept>
 using namespace std;
 
 namespace Alamo {
@@ -257,7 +258,7 @@ ParticleEmitterInstance::ParticleEmitterInstance(LinkedList<ParticleEmitterInsta
         if ((m_renderer.m_plugin = CastRendererPlugin<BumpMapRenderer>              (m_engine, plugin)) == NULL)
         if ((m_renderer.m_plugin = CastRendererPlugin<LineRenderer>                 (m_engine, plugin)) == NULL)
         {
-            throw runtime_error("Unable to create emitter instance");
+            throw std::runtime_error("Unable to create emitter instance");
         }
         m_renderer.m_dataSize = plugin.GetPrivateDataSize();
 
