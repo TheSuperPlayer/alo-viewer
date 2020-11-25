@@ -618,7 +618,16 @@ static void InitializeGameMenu(ApplicationInfo* info)
             id = q.first->second.first++;
             info->gameModLookup[id] = p;
             p->second.menuitem = id;
-            AppendMenu(hGame, MF_ENABLED | MF_STRING, id, p->first.m_mod.c_str());
+
+            wstring itemName;
+            if (p->first.m_isSteamMod) {
+                itemName = L"SteamMod: " + p->first.m_mod;
+            }
+            else {
+                itemName = p->first.m_mod.c_str();
+            }
+
+            AppendMenu(hGame, MF_ENABLED | MF_STRING, id, itemName.c_str());
         }
     }
     

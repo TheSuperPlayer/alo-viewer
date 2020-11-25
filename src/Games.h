@@ -20,6 +20,7 @@ struct GameMod
 {
     GameID       m_game;
     std::wstring m_mod;
+    bool         m_isSteamMod;
 
     // Operators
     bool operator == (const GameMod& rhs) const {
@@ -44,6 +45,8 @@ struct GameMod
     // Constructors
     GameMod(GameID game = GID_UNKNOWN) : m_game(game) {}
     GameMod(GameID game, const std::wstring& mod) : m_game(game), m_mod(mod) {}
+    GameMod(GameID game, const std::wstring& mod, bool isSteamMod) : m_game(game), m_mod(mod), m_isSteamMod(isSteamMod) {}
+
 };
 
 #endif

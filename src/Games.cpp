@@ -1,5 +1,6 @@
 #include "Games.h"
 #include <shlwapi.h>
+#include "config.h"
 using namespace std;
 
 // Returns the base directory for a game, based on
@@ -98,9 +99,17 @@ void GameMod::AppendAssetDirs(std::vector<std::wstring>& basedirs) const
     case GID_EAW_FOC:
         if (!(gamepath = GetBaseDirForGame(GID_EAW_FOC)).empty()) {
             if (!m_mod.empty()) {
-                modpath = gamepath + L"\\Mods\\" + m_mod;
-                if (PathIsDirectory(modpath.c_str())) {
-                    basedirs.push_back(modpath);
+                if (!m_isSteamMod) {
+                    modpath = gamepath + L"\\Mods\\" + m_mod;
+                    if (PathIsDirectory(modpath.c_str())) {
+                        basedirs.push_back(modpath);
+                    }
+                }
+                else {
+                    modpath = Config::GetSteamWorkshopDir(m_game, gamepath) + L"\\" + m_mod;
+                    if (PathIsDirectory(modpath.c_str())) {
+                        basedirs.push_back(modpath);
+                    }
                 }
             }
             basedirs.push_back(gamepath);
@@ -108,10 +117,15 @@ void GameMod::AppendAssetDirs(std::vector<std::wstring>& basedirs) const
 
     case GID_EAW:
         if (!(gamepath = GetBaseDirForGame(GID_EAW)).empty()) {
-            if (m_game == GID_EAW) {
-                if (!m_mod.empty()) {
-                    // Only add modpath if this is not for FoC.
+            if (!m_mod.empty()) {
+                if (!m_isSteamMod) {
                     modpath = gamepath + L"\\Mods\\" + m_mod;
+                    if (PathIsDirectory(modpath.c_str())) {
+                        basedirs.push_back(modpath);
+                    }
+                }
+                else {
+                    modpath = Config::GetSteamWorkshopDir(m_game, gamepath) + L"\\" + m_mod;
                     if (PathIsDirectory(modpath.c_str())) {
                         basedirs.push_back(modpath);
                     }
@@ -155,10 +169,27 @@ static void GetMods(GameID game, std::vector<GameMod>& gamemods)
             do {
                 if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && wcscmp(wfd.cFileName,L".") != 0 && wcscmp(wfd.cFileName,L"..") != 0) {
                     // It's a mod directory
-                    gamemods.push_back(GameMod(game, wfd.cFileName));
+                    gamemods.push_back(GameMod(game, wfd.cFileName, false));
                 }
             } while (FindNextFile(hFind, &wfd));
             FindClose(hFind);
+        }
+
+        //STEAM HANDLING
+        if (Config::IsSteamInstalled() && Config::IsSteamVersion(game)) {
+            wstring modpath = Config::GetSteamWorkshopDir(game, GetBaseDirForGame(game)) + L"\\*.*";
+            WIN32_FIND_DATA wfd;
+            HANDLE hFind = FindFirstFile(modpath.c_str(), &wfd);
+            if (hFind != INVALID_HANDLE_VALUE)
+            {
+                do {
+                    if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && wcscmp(wfd.cFileName, L".") != 0 && wcscmp(wfd.cFileName, L"..") != 0) {
+                        // It's a mod directory
+                        gamemods.push_back(GameMod(game, wfd.cFileName, true));
+                    }
+                } while (FindNextFile(hFind, &wfd));
+                FindClose(hFind);
+            }
         }
     }
 
@@ -166,6 +197,7 @@ static void GetMods(GameID game, std::vector<GameMod>& gamemods)
     // Append it after the mods, so mods match before the game itself.
     // Even if we can't find the game, we still support this mode so the user can select it
     // and put the assets in the local directory.
+
     gamemods.push_back(GameMod(game));
 }
 

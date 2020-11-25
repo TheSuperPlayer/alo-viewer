@@ -17,6 +17,7 @@ static const wchar_t* WINDOW_TITLE  = L"Alamo Object Viewer";
 // Base path in HKEY_CURRENT_USER for this application
 static const wchar_t* REGISTRY_BASE_PATH = L"Software\\AloViewer";
 
+
 // Minimum dimension for the application window
 static const int MIN_APPLICATION_WIDTH  = 700;
 static const int MIN_APPLICATION_HEIGHT = 550;
@@ -55,5 +56,17 @@ void AddToHistory(const std::wstring& name);
 // Get and set the default game mod
 GameMod GetDefaultGameMod();
 void SetDefaultGameMod(const GameMod& mode);
+
+//STEAM
+
+// Base steam registry path
+static const wchar_t* REGISTRY_STEAM_PATH = L"Software\\Valve\\Steam";
+
+bool IsSteamInstalled();
+
+bool IsSteamVersion(GameID game);
+
+std::wstring GetSteamWorkshopDir(GameID game, std::wstring gamepath);
+
 }
 #endif

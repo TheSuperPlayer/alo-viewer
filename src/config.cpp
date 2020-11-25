@@ -262,12 +262,52 @@ GameMod Config::GetDefaultGameMod()
 
 void Config::SetDefaultGameMod(const GameMod& gm)
 {
-	HKEY hKey;
+    HKEY hKey;
     const wstring path = wstring(REGISTRY_BASE_PATH) + L"\\Settings";
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, path.c_str(), 0, KEY_WRITE, &hKey) == ERROR_SUCCESS)
-	{
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, path.c_str(), 0, KEY_WRITE, &hKey) == ERROR_SUCCESS)
+    {
         WriteInteger(hKey, L"GameMod_Game", gm.m_game);
         WriteString(hKey, L"GameMod_Mod", gm.m_mod);
         RegCloseKey(hKey);
     }
 }
+
+//Simply check if steam is installed by checking if the steam path exists
+bool Config::IsSteamInstalled() {
+    HKEY hKey;
+    const wstring path = wstring(REGISTRY_STEAM_PATH);
+    wstring steamPath = L"";
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, path.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    {
+        steamPath = ReadString(hKey, L"SteamPath");
+        RegCloseKey(hKey);
+    }
+    return !steamPath.empty();
+
+}
+
+//Check if EaW or FoC are the steam gold pack
+bool Config::IsSteamVersion(GameID game) {
+    if (game != GID_EAW && game != GID_EAW_FOC) { //Only EAW & FOC are on steam!
+        return false;
+    }
+
+    HKEY hKey;
+    const wstring path = wstring(REGISTRY_STEAM_PATH)  + L"\\Apps\\32470"; //Steamapp number for EaW & FoC Goldpack
+    int eawGoldPackInstalled{};
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, path.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    {
+        eawGoldPackInstalled = ReadInteger(hKey, L"Installed", 0);
+        RegCloseKey(hKey);
+    }
+    return eawGoldPackInstalled == 1;
+}
+
+std::wstring Config::GetSteamWorkshopDir(GameID game, wstring gamepath){
+    if (game != GID_EAW && game != GID_EAW_FOC) { //Only EAW & FOC are on steam!
+        return L"";
+    }
+
+    return gamepath + L"\\..\\..\\..\\workshop\\content\\32470";
+}
+
